@@ -4,14 +4,14 @@ import os
 # ===== 設定 =====
 
 # 動画ファイル名
-video = "floor1.mp4"
+video = "floor2.mp4"
 video_path = os.path.join(r"C:\Users\hutoo\Documents\git_ros_lecture\ROSLecture_2026_group7\image", video)
 
 # 保存先フォルダ
 output_dir = r"C:\Users\hutoo\Documents\git_ros_lecture\ROSLecture_2026_group7\image\frames"
 
 # 何フレームごとに保存するか
-frame_interval = 25
+frame_interval = 15
 
 # =================
 
@@ -40,7 +40,7 @@ while True:
 
         filename = os.path.join(
             output_dir,
-            f"{video}_frame_{save_count:02d}.jpg"
+            f"1.5{video}_frame_{save_count:02d}.jpg"
         )
 
         cv2.imwrite(filename, frame)

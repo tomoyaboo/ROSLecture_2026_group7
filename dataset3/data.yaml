@@ -1,0 +1,7 @@
+path: dataset3
+
+train: images/train
+val: images/val
+
+nc: 1  # クラス数（例）
+names: ["object"]

@@ -7,7 +7,7 @@ image_dir = r"C:\Users\hutoo\Documents\git_ros_lecture\ROSLecture_2026_group7\im
 label_dir = r"C:\Users\hutoo\Documents\git_ros_lecture\ROSLecture_2026_group7\image\labels"
 
 # 出力先
-dataset_dir = r"C:\Users\hutoo\Documents\git_ros_lecture\ROSLecture_2026_group7\image\dataset1"
+dataset_dir = r"C:\Users\hutoo\Documents\git_ros_lecture\ROSLecture_2026_group7\dataset3"
 
 train_img = os.path.join(dataset_dir, "images", "train")
 val_img = os.path.join(dataset_dir, "images", "val")
