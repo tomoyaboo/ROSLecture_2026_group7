@@ -1,7 +1,9 @@
-path: dataset3
+train: ../dataset3/images/train
+val: ../dataset3/images/val
 
-train: images/train
-val: images/val
+# 変更後（Colab用）
+train: /content/drive/MyDrive/ros_lecture/dataset3/images/train
+val: /content/drive/MyDrive/ros_lecture/dataset3/images/val
 
-nc: 1  # クラス数（例）
-names: ["object"]
+nc: 1
+names: ['key']
