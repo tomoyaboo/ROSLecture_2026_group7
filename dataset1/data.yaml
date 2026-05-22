@@ -1,5 +1,0 @@
-train: ../dataset1/images/train
-val: ../dataset1/images/val
-
-nc: 1
-names: ['key']
