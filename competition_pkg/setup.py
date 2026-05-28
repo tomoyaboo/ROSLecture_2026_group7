@@ -13,7 +13,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.pashjoin("share", package_name, "launch"), glob("./launch/*.launch.py")),
+        (os.path.join("share", package_name, "launch"), glob("./launch/*.launch.py")),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,8 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "node1 = competition_pkg.node1:main",
-            "node2 = competition_pkg.node2:main",
+            "state_main_test = competition_pkg.state_main_test:main",
+            'voice_recognition_node = competition_pkg.node.voice_recognition_node_whisper:main',
         ],
     },
 )
