@@ -1,180 +1,72 @@
-# ステートマシン・音声認識ノードまわりの共有事項
+# ステートマシン開発・動作確認方法
 
-## 1．今回追加している内容
+## 1．目的
 
-自分のブランチでは，主に以下の内容を追加しています．
+共同開発では，基本的に各自が担当するステートを作成し，最終的に本番用ステートマシンに統合する形で開発します．
 
-- ステートマシンの仮動作確認用メイン
-  - `competition_pkg/competition_pkg/state_main_test.py`
+そのため，このブランチでは以下の2つを用意しています．
+
 - 本番用ステートマシンのたたき台
   - `competition_pkg/competition_pkg/sm_main.py`
-- 音声認識ステート
-  - `competition_pkg/competition_pkg/states/voice_recognirion.py`
-- 質問ステート
-  - `competition_pkg/competition_pkg/states/question.py`
-- 開始待ちステート
-  - `competition_pkg/competition_pkg/states/wait4start.py`
-- 音声認識ノード
-  - `competition_pkg/competition_pkg/node/voice_recognition_node.py`
+- 各ステートの仮動作確認用メイン
+  - `competition_pkg/competition_pkg/state_main_test.py`
+
+各自が作成したステートは，まず `state_main_test.py` を使って単体または簡単な流れで確認し，問題なければ `sm_main.py` に統合する想定です．
 
 ---
 
 ## 2．本番用 `sm_main.py` について
 
-`sm_main.py` は，本番用のステートマシン全体を書くためのファイルとして用意しています．
+`sm_main.py` は，本番用のステートマシン全体を書くためのファイルです．
 
-現状では，まだ以下のように `???` が残っている部分があります．
+各自が作成したステートを，このファイルに `import` し，`sm.add_state()` で登録していくことで，全体のステートマシンを構成します．
 
-```python
-from .states import ???
-```
-
-```python
-state=???
-```
-
-```python
-transitions={
-    ??? : "次のステート",
-}
-```
-
-そのため，現時点では `sm_main.py` はまだそのままでは実行できません．
-
-今後は，各担当者が作成したステートを `sm_main.py` にimportし，`sm.add_state()` の中に書き込むことで，本番用のステートマシンを完成させる想定です．
-
-例えば，誰かが `move_to_position.py` というステートを作った場合は，`sm_main.py` に以下のように追加します．
-
-```python
-from .states import move_to_position
-```
-
-そして，ステートマシン本体には以下のように書きます．
-
-```python
-sm.add_state(
-    name="te-ichi",
-    state=move_to_position.MoveToPositionState(node=self),
-    transitions={
-        "success": "of-recog",
-        "failure": "EXIT",
-    },
-)
-```
-
-つまり，本番用では，
-
-```text
-ステートのPythonファイルを作る
-↓
-sm_main.pyでimportする
-↓
-sm.add_state()で登録する
-↓
-transitionsで次に進むステート名を書く
-```
-
-という流れになります．
-
----
-
-## 3．現在のテスト用メイン `state_main_test.py` の動作
-
-現在，仮動作確認用として `state_main_test.py` を用意しています．
-
-このファイルでは，以下のような簡単なステートマシンを動かしています．
-
-```text
-Wait4start
-↓
-Question
-↓
-VoiceRecognition
-↓
-EXIT
-```
-
-それぞれの役割は以下です．
-
-### Wait4start
-
-```text
-開始待ちステート
-```
-
-ターミナル入力などで開始を待ち，開始条件を満たすと `success` を返します．
-
-```python
-transitions={
-    "success": "Question",
-}
-```
-
-### Question
-
-```text
-「鍵持ってますか？」と聞くステート
-```
-
-現在は，質問文をログに出して，すぐに `success` を返す簡単な実装です．
-
-```python
-transitions={
-    "success": "VoiceRecognition",
-}
-```
-
-### VoiceRecognition
-
-```text
-/speech_text を購読して，HAVE / LOST を待つステート
-```
-
-音声認識ノードから `/speech_text` に送られてきた文字列を見て，以下のように遷移します．
-
-```text
-HAVE を受信 → success
-LOST を受信 → failure
-5秒以内に認識できない → retry
-```
-
-現在のテストメインでは，以下のように書いています．
-
-```python
-sm.add_state(
-    name="VoiceRecognition",
-    state=voice_recognirion.VoRecofg(node=self),
-    transitions={
-        "success": "EXIT",
-        "failure": "EXIT",
-        "retry": "Question",
-    },
-)
-```
-
-つまり，
-
-```text
-HAVEなら終了
-LOSTなら終了
-認識できなければQuestionに戻って再質問
-```
-
-という仮動作確認になっています．
-
----
-
-## 4．自分のステートを動かすには
-
-自分のステートを仮に動かしたい場合は，`state_main_test.py` に一時的に追加すると確認しやすいです．
-
-例えば，`states/my_state.py` に `MyState` というステートを作った場合，まず `state_main_test.py` の上の方にimportを追加します．
+例えば，`states/my_state.py` に `MyState` というステートを作成した場合，`sm_main.py` に以下のように追加します．
 
 ```python
 from .states import my_state
 ```
 
-そして，`sm.add_state()` を追加します．
+そして，ステートマシン本体に以下のように登録します．
+
+```python
+sm.add_state(
+    name="MyState",
+    state=my_state.MyState(node=self),
+    transitions={
+        "success": "NextState",
+        "failure": "EXIT",
+    },
+)
+```
+
+基本的な流れは以下です．
+
+```text
+ステートのPythonファイルを作成
+↓
+sm_main.pyでimport
+↓
+sm.add_state()で登録
+↓
+transitionsに次のステート名を書く
+```
+
+---
+
+## 3．仮動作確認用 `state_main_test.py` について
+
+`state_main_test.py` は，各自が作成したステートを一時的に動作確認するためのファイルです．
+
+本番用の `sm_main.py` を直接編集しながら確認すると，他の人の作業と衝突しやすいため，まずは `state_main_test.py` に自分のステートを追加して確認するのがよいです．
+
+例えば，`states/my_state.py` に `MyState` を作った場合，`state_main_test.py` に以下を追加します．
+
+```python
+from .states import my_state
+```
+
+次に，ステートマシン内に以下のように追加します．
 
 ```python
 sm.add_state(
@@ -187,90 +79,69 @@ sm.add_state(
 )
 ```
 
-既存の流れに組み込む場合は，前のステートの遷移先を自分のステート名に変更します．
+これで，自分のステートだけを実行して，正常に動くか確認できます．
 
-例えば，`Question` の次に自分のステートを動かしたい場合は，
+---
+
+## 4．複数ステートをつなげて確認する方法
+
+複数のステートをつなげて確認したい場合は，`transitions` の遷移先を書き換えます．
+
+例えば，以下のような流れで確認したい場合を考えます．
+
+```text
+Wait4start
+↓
+MyState
+↓
+EXIT
+```
+
+その場合，`Wait4start` の遷移先を `MyState` にします．
 
 ```python
 sm.add_state(
-    name="Question",
-    state=question.QuestionState(node=self),
+    name="Wait4start",
+    state=wait4start.Wait4StartState(node=self),
     transitions={
         "success": "MyState",
     },
 )
 ```
 
-のようにします．
-
-その後，自分のステートから次に進む先を `transitions` に書きます．
+そして，`MyState` から `EXIT` に進むようにします．
 
 ```python
 sm.add_state(
     name="MyState",
     state=my_state.MyState(node=self),
     transitions={
-        "success": "VoiceRecognition",
+        "success": "EXIT",
         "failure": "EXIT",
     },
 )
 ```
 
-このようにすると，
-
-```text
-Wait4start
-↓
-Question
-↓
-MyState
-↓
-VoiceRecognition
-↓
-EXIT
-```
-
-のように動作確認できます．
+このように，`transitions` の値を変更することで，各自のステートを好きな順番で仮確認できます．
 
 ---
 
 ## 5．`setup.py` の書き換えについて
 
-ROS2で `ros2 run` からPythonノードを起動するには，`setup.py` の `entry_points` に登録する必要があります．
+ROS2でPythonファイルを `ros2 run` から実行するには，`setup.py` の `entry_points` に登録する必要があります．
 
-現在の `setup.py` では，以下のようになっている場合があります．
-
-```python
-entry_points={
-    'console_scripts': [
-        "node1 = competition_pkg.node1:main",
-        "node2 = competition_pkg.node2:main",
-    ],
-},
-```
-
-このままだと，今回追加した以下のノードを `ros2 run` で起動できません．
-
-- `state_main_test.py`
-- `sm_main.py`
-- `voice_recognition_node.py`
-
-そのため，以下のように変更します．
+例えば，`state_main_test.py` と `sm_main.py` を実行できるようにするには，以下のように書きます．
 
 ```python
 entry_points={
     'console_scripts': [
-        "node1 = competition_pkg.node1:main",
-        "node2 = competition_pkg.node2:main",
-
         "state_main_test = competition_pkg.state_main_test:main",
         "sm_main = competition_pkg.sm_main:main",
-        "voice_recognition_node = competition_pkg.node.voice_recognition_node:main",
     ],
 },
 ```
 
-これで，以下のように実行できるようになります．
+これで，以下のコマンドで実行できます．
 
 ```bash
 ros2 run competition_pkg state_main_test
@@ -280,39 +151,27 @@ ros2 run competition_pkg state_main_test
 ros2 run competition_pkg sm_main
 ```
 
-```bash
-ros2 run competition_pkg voice_recognition_node
+既存の `node1` や `node2` を残す場合は，以下のように追加してください．
+
+```python
+entry_points={
+    'console_scripts': [
+        "node1 = competition_pkg.node1:main",
+        "node2 = competition_pkg.node2:main",
+
+        "state_main_test = competition_pkg.state_main_test:main",
+        "sm_main = competition_pkg.sm_main:main",
+    ],
+},
 ```
 
 ---
 
-## 6．`setup.py` で修正が必要な点
+## 6．`setup.py` の注意点
 
-現状の `setup.py` に以下のような typo がある場合があります．
+### `states` を除外しない
 
-```python
-os.pashjoin
-```
-
-これは間違いで，正しくは以下です．
-
-```python
-os.path.join
-```
-
-そのため，以下の部分は，
-
-```python
-(os.pashjoin("share", package_name, "launch"), glob("./launch/*.launch.py")),
-```
-
-次のように修正します．
-
-```python
-(os.path.join("share", package_name, "launch"), glob("./launch/*.launch.py")),
-```
-
-また，現在の `setup.py` に以下のような記述がある場合があります．
+`setup.py` に以下のような記述がある場合，`states` 配下がインストール対象から外れる可能性があります．
 
 ```python
 submodules = [f"{package_name}/states"]
@@ -320,21 +179,33 @@ submodules = [f"{package_name}/states"]
 packages=find_packages(exclude=['test', *submodules]),
 ```
 
-この書き方だと，`states` 配下のファイルがインストール対象から外れる可能性があります．
+各自が作成したステートを `from .states import ...` で使うためには，`states` もパッケージとして含める必要があります．
 
-`from .states import ...` を使うためには，`states` パッケージもインストールされる必要があります．
-
-そのため，基本的には以下のようにした方が安全です．
+そのため，基本的には以下のようにするのが安全です．
 
 ```python
 packages=find_packages(exclude=['test']),
+```
+
+### `__init__.py` を置く
+
+`states` 配下をPythonパッケージとして扱うため，以下のファイルが必要です．
+
+```text
+competition_pkg/competition_pkg/states/__init__.py
+```
+
+また，ノード用のディレクトリを使う場合は，以下も必要です．
+
+```text
+competition_pkg/competition_pkg/node/__init__.py
 ```
 
 ---
 
 ## 7．修正後の `setup.py` の例
 
-以下のようにしておくと，今回追加したステートマシンと音声認識ノードを `ros2 run` で起動できます．
+ステートマシンの仮動作確認と本番用メインを実行できるようにする場合，`setup.py` は以下のようになります．
 
 ```python
 from setuptools import find_packages, setup
@@ -367,7 +238,6 @@ setup(
 
             "state_main_test = competition_pkg.state_main_test:main",
             "sm_main = competition_pkg.sm_main:main",
-            "voice_recognition_node = competition_pkg.node.voice_recognition_node:main",
         ],
     },
 )
@@ -375,11 +245,28 @@ setup(
 
 ---
 
-## 8．仮動作確認の方法
+## 8．ビルド方法
 
-### ステートマシンの仮動作確認
+`setup.py` を変更した場合や，新しいステートを追加した場合は，ビルドし直してください．
 
-まず，ステートマシン側を起動します．
+```bash
+cd ~/ros2_lecture_ws/
+. 0_env.sh
+. /entrypoint.sh
+colcon build --packages-select competition_pkg
+```
+
+ビルド後，環境を読み込み直します．
+
+```bash
+. install/setup.bash
+```
+
+---
+
+## 9．仮動作確認の方法
+
+各自のステートを確認する場合は，`state_main_test.py` を使います．
 
 ```bash
 cd ~/ros2_lecture_ws/
@@ -388,106 +275,32 @@ cd ~/ros2_lecture_ws/
 ros2 run competition_pkg state_main_test
 ```
 
-これは，現在の仮動作確認用メインです．
-
-本番用の `sm_main.py` はまだ `???` が残っているため，完成するまではこちらを使って確認します．
-
----
-
-### 音声認識ノードの動作確認
-
-別端末で，音声認識ノードを起動します．
+本番用の `sm_main.py` を確認する場合は，以下を実行します．
 
 ```bash
 cd ~/ros2_lecture_ws/
 . 0_env.sh
 . /entrypoint.sh
-ros2_lecture_sandbox venv:/opt/pyvenv
-ros2 run competition_pkg voice_recognition_node
+ros2 run competition_pkg sm_main
 ```
 
-音声認識ノードは `/speech_text` に認識結果を送信します．
-
-ステートマシン側の `VoiceRecognition` ステートは，この `/speech_text` を購読して，`HAVE` または `LOST` を受け取ります．
+ただし，`sm_main.py` に未完成のステートや `???` が残っている場合は実行できません．  
+その場合は，まず `state_main_test.py` で個別に確認してください．
 
 ---
 
-## 9．トピックだけ確認したい場合
+## 10．自分のステートを動かすときの手順
 
-音声認識ノードが本当に `/speech_text` に送れているか確認したい場合は，別端末で以下を実行します．
-
-```bash
-cd ~/ros2_lecture_ws/
-. 0_env.sh
-. /entrypoint.sh
-ros2 topic echo /speech_text
-```
-
-例えば，音声認識ノードが `HAVE` を送信していれば，以下のように表示されます．
-
-```bash
-data: HAVE
----
-```
-
----
-
-## 10．本番用 `sm_main.py` に統合するときの注意
-
-現在の音声認識ステート `VoRecofg` は，返す結果が以下です．
+各自が作成したステートを確認する流れは以下です．
 
 ```text
-HAVEを受信した場合 → success
-LOSTを受信した場合 → failure
-認識失敗・時間切れ → retry
-```
-
-つまり，`transitions` は以下のように書く必要があります．
-
-```python
-sm.add_state(
-    name="VoiceRecognition",
-    state=voice_recognirion.VoRecofg(node=self),
-    transitions={
-        "success": "VoOut-Have",
-        "failure": "search",
-        "retry": "Question",
-    },
-)
-```
-
-一方で，`sm_main.py` のたたき台では，以下のように書かれている場合があります．
-
-```python
-transitions={
-    "HAVE": "VoOut-have",
-    "LOST": "search",
-    "retry": "Question",
-}
-```
-
-この書き方にしたい場合は，`VoRecofg` 側の `outcomes` と `return` を以下のように変更する必要があります．
-
-```python
-super().__init__(outcomes=["HAVE", "LOST", "retry"])
-```
-
-```python
-if text == self.expected_text_Y:
-    return "HAVE"
-
-elif text == self.expected_text_N:
-    return "LOST"
-```
-
-どちらでも実装できますが，現状の `VoRecofg` に合わせるなら，`sm_main.py` 側を以下のようにする方が簡単です．
-
-```python
-transitions={
-    "success": "VoOut-Have",
-    "failure": "search",
-    "retry": "Question",
-}
+1．states配下に自分のステートファイルを作成する
+2．state_main_test.pyでimportする
+3．state_main_test.pyのsm.add_state()に追加する
+4．transitionsで遷移先を書く
+5．setup.pyにstate_main_testが登録されていることを確認する
+6．colcon buildする
+7．ros2 run competition_pkg state_main_testで実行する
 ```
 
 ---
