@@ -1,36 +1,47 @@
+# モジュールのインポート（ROS2関連）
 import rclpy
 from rclpy.node import Node
+
 from std_msgs.msg import String
 
 
-class SpeechTextPublisher(Node):
+class SpeechRecognitionNode(Node):
     def __init__(self):
-        super().__init__("speech_text_publisher")
+        super().__init__("speech_recognition_node")
 
-        self.publisher = self.create_publisher(
-            String,
-            "speech_text",
-            10
+        self.speech_pub = self.create_publisher(
+            msg_type=String,
+            topic="speech_text",
+            qos_profile=10
         )
 
-    def publish_recognized_text(self, recognized_text: str):
-        msg = String()
-        msg.data = recognized_text
-        self.publisher.publish(msg)
+        self.get_logger().info("音声認識ノードを開始しました")
+        self.get_logger().info("HAVE または LOST を入力してください")
 
-        self.get_logger().info(f"送信した音声認識結果: {recognized_text}")
+    def run(self):
+        while rclpy.ok():
+            text = input("音声認識結果を入力: ")
+            text = text.strip().upper()
+
+            msg = String()
+            msg.data = text
+
+            self.speech_pub.publish(msg)
+            self.get_logger().info(f"/speech_text に送信: {text}")
 
 
 def main(args=None):
     rclpy.init(args=args)
 
-    node = SpeechTextPublisher()
+    node = SpeechRecognitionNode()
 
-    # 動作確認用：本来はここに音声認識結果を入れる
-    node.publish_recognized_text("HAVE")
-
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        node.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":

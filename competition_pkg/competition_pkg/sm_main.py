@@ -12,21 +12,20 @@ from yasmin import StateMachine
 from yasmin_viewer import YasminViewerPub
 
 # 各ステートをimport
-from .state_main import wait4start
-from .state_main import move_and_detect
-from .state_main import say_key_found
-from .state_main import say_open_room
-from .state_main import voice_recognition
-from .state_main import say_key_not_found
-from .state_main import say_bring_key
+from .states import wait4start
+from .states import ???
+from .states import ???
+from .states import ???
+from .states import ???
+from .states import question
+from .states import VoiceRecognition
 
 
 class StateMachineNode(Node):
     def __init__(self):
-        super().__init__("sm_main")
+        super().__init__("success")
 
         self.get_logger().info("<< PLEASE ENTER TO START >>")
-        input()
         self.get_logger().info("Task Start!!")
 
         # StateMachineを作成
@@ -76,9 +75,9 @@ class StateMachineNode(Node):
 
         sm.add_state(
             name="Question",
-            state=???,
+            state=question.QuestionState(node=self),
             transitions={
-                "": "VoiceRecognition",
+                "success": "VoiceRecognition",
             },
         )
 
