@@ -24,8 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "node1 = competition_pkg.node1:main",
-            "node2 = competition_pkg.node2:main",
+            'state_main_test = competition_pkg.state_main_test:main',
+            'voice_recognition_node = competition_pkg.node.voice_recognition_node:main',
         ],
     },
 )
