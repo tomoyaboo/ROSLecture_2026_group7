@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
             "state_main_test = competition_pkg.state_main_test:main",
             'voice_recognition_node = competition_pkg.node.voice_recognition_node_whisper:main',
+
         ],
     },
 )
