@@ -2,7 +2,7 @@
 
 ## 1．目的
 
-共同開発では，基本的に各自が担当するステートを作成し，最終的に本番用ステートマシンに統合する形で開発します．
+共同開発では，各自が担当するステートを作成し，最終的に本番用ステートマシンへ統合する形で開発します．
 
 そのため，このブランチでは以下の2つを用意しています．
 
@@ -126,152 +126,26 @@ sm.add_state(
 
 ---
 
-## 5．`setup.py` の書き換えについて
+## 5．各自のステートを動かすときの手順
 
-ROS2でPythonファイルを `ros2 run` から実行するには，`setup.py` の `entry_points` に登録する必要があります．
-
-例えば，`state_main_test.py` と `sm_main.py` を実行できるようにするには，以下のように書きます．
-
-```python
-entry_points={
-    'console_scripts': [
-        "state_main_test = competition_pkg.state_main_test:main",
-        "sm_main = competition_pkg.sm_main:main",
-    ],
-},
-```
-
-これで，以下のコマンドで実行できます．
-
-```bash
-ros2 run competition_pkg state_main_test
-```
-
-```bash
-ros2 run competition_pkg sm_main
-```
-
-既存の `node1` や `node2` を残す場合は，以下のように追加してください．
-
-```python
-entry_points={
-    'console_scripts': [
-        "node1 = competition_pkg.node1:main",
-        "node2 = competition_pkg.node2:main",
-
-        "state_main_test = competition_pkg.state_main_test:main",
-        "sm_main = competition_pkg.sm_main:main",
-    ],
-},
-```
-
----
-
-## 6．`setup.py` の注意点
-
-### `states` を除外しない
-
-`setup.py` に以下のような記述がある場合，`states` 配下がインストール対象から外れる可能性があります．
-
-```python
-submodules = [f"{package_name}/states"]
-
-packages=find_packages(exclude=['test', *submodules]),
-```
-
-各自が作成したステートを `from .states import ...` で使うためには，`states` もパッケージとして含める必要があります．
-
-そのため，基本的には以下のようにするのが安全です．
-
-```python
-packages=find_packages(exclude=['test']),
-```
-
-### `__init__.py` を置く
-
-`states` 配下をPythonパッケージとして扱うため，以下のファイルが必要です．
+各自が作成したステートを確認する流れは以下です．
 
 ```text
-competition_pkg/competition_pkg/states/__init__.py
+1．states配下に自分のステートファイルを作成する
+2．state_main_test.pyでimportする
+3．state_main_test.pyのsm.add_state()に追加する
+4．transitionsで遷移先を書く
+5．colcon buildする
+6．ros2 run competition_pkg state_main_testで実行する
 ```
 
-また，ノード用のディレクトリを使う場合は，以下も必要です．
-
-```text
-competition_pkg/competition_pkg/node/__init__.py
-```
-
----
-
-## 7．修正後の `setup.py` の例
-
-ステートマシンの仮動作確認と本番用メインを実行できるようにする場合，`setup.py` は以下のようになります．
-
-```python
-from setuptools import find_packages, setup
-import os
-from glob import glob
-
-package_name = 'competition_pkg'
-
-setup(
-    name=package_name,
-    version='0.0.0',
-    packages=find_packages(exclude=['test']),
-    data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
-        (os.path.join("share", package_name, "launch"), glob("./launch/*.launch.py")),
-    ],
-    install_requires=['setuptools'],
-    zip_safe=True,
-    maintainer='ros2',
-    maintainer_email='syuta0910a@yahoo.co.jp',
-    description='TODO: Package description',
-    license='TODO: License declaration',
-    tests_require=['pytest'],
-    entry_points={
-        'console_scripts': [
-            "node1 = competition_pkg.node1:main",
-            "node2 = competition_pkg.node2:main",
-
-            "state_main_test = competition_pkg.state_main_test:main",
-            "sm_main = competition_pkg.sm_main:main",
-        ],
-    },
-)
-```
-
----
-
-## 8．ビルド方法
-
-`setup.py` を変更した場合や，新しいステートを追加した場合は，ビルドし直してください．
+実行例は以下です．
 
 ```bash
 cd ~/ros2_lecture_ws/
 . 0_env.sh
 . /entrypoint.sh
 colcon build --packages-select competition_pkg
-```
-
-ビルド後，環境を読み込み直します．
-
-```bash
-. install/setup.bash
-```
-
----
-
-## 9．仮動作確認の方法
-
-各自のステートを確認する場合は，`state_main_test.py` を使います．
-
-```bash
-cd ~/ros2_lecture_ws/
-. 0_env.sh
-. /entrypoint.sh
 ros2 run competition_pkg state_main_test
 ```
 
@@ -281,6 +155,7 @@ ros2 run competition_pkg state_main_test
 cd ~/ros2_lecture_ws/
 . 0_env.sh
 . /entrypoint.sh
+colcon build --packages-select competition_pkg
 ros2 run competition_pkg sm_main
 ```
 
@@ -289,18 +164,98 @@ ros2 run competition_pkg sm_main
 
 ---
 
-## 10．自分のステートを動かすときの手順
+## 6．本番用 `sm_main.py` に統合するときの考え方
 
-各自が作成したステートを確認する流れは以下です．
+`state_main_test.py` で自分のステートの動作確認ができたら，本番用の `sm_main.py` に統合します．
+
+統合時には，以下の3点を追加・変更します．
 
 ```text
-1．states配下に自分のステートファイルを作成する
-2．state_main_test.pyでimportする
-3．state_main_test.pyのsm.add_state()に追加する
-4．transitionsで遷移先を書く
-5．setup.pyにstate_main_testが登録されていることを確認する
-6．colcon buildする
-7．ros2 run competition_pkg state_main_testで実行する
+1．sm_main.pyで自分のステートをimportする
+2．sm.add_state()で自分のステートを登録する
+3．前後のステートのtransitionsを書き換える
 ```
 
+例えば，`MyState` を `StartState` の次に入れたい場合は，以下のようにします．
+
+```python
+sm.add_state(
+    name="StartState",
+    state=start_state.StartState(node=self),
+    transitions={
+        "success": "MyState",
+    },
+)
+
+sm.add_state(
+    name="MyState",
+    state=my_state.MyState(node=self),
+    transitions={
+        "success": "NextState",
+        "failure": "EXIT",
+    },
+)
+```
+
+このように，前のステートの遷移先を自分のステート名にし，自分のステートの遷移先を次のステート名にします．
+
 ---
+
+## 7．参考：ノードを作って試したい場合
+
+ステートだけでなく，ROS2ノードを作って試したい場合は，`competition_pkg/competition_pkg/node/` 配下にノード用のPythonファイルを作成します．
+
+例えば，`my_node.py` というノードを作る場合は，以下のような構成にします．
+
+```text
+competition_pkg/
+└── competition_pkg/
+    └── node/
+        ├── __init__.py
+        └── my_node.py
+```
+
+`my_node.py` の中には，通常のROS2ノードと同じように `main()` を用意します．
+
+```python
+import rclpy
+from rclpy.node import Node
+
+
+class MyNode(Node):
+    def __init__(self):
+        super().__init__("my_node")
+        self.get_logger().info("my_nodeを起動しました")
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    node = MyNode()
+
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+```
+
+このノードを `ros2 run` で起動したい場合は，`setup.py` の `entry_points` に以下を追加します．
+
+```python
+"my_node = competition_pkg.node.my_node:main",
+```
+
+追加後は，ビルドして実行します．
+
+```bash
+cd ~/ros2_lecture_ws/
+. 0_env.sh
+. /entrypoint.sh
+colcon build --packages-select competition_pkg
+ros2 run competition_pkg my_node
+```
+
+音声認識ノードなど，追加のライブラリが必要なノードを作る場合は，そのノードを使う人だけ必要なライブラリをインストールしてください．
