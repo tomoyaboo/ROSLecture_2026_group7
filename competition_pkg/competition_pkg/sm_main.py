@@ -18,7 +18,7 @@ from .states import ???
 from .states import ???
 from .states import ???
 from .states import question
-from .states import VoiceRecognition
+from .states import voice_recognirion
 
 
 class StateMachineNode(Node):
@@ -86,7 +86,7 @@ class StateMachineNode(Node):
         # 音声認識
         sm.add_state(
             name="VoiceRecognition",
-            state=???,
+            state=voice_recognirion.VoRecofg(node=self),
             transitions={
                 "HAVE": "VoOut-have",
                 "LOST": "search",
