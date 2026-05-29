@@ -1,4 +1,4 @@
-import subprocess
+import pyttsx3
 
 from yasmin import State
 from yasmin import Blackboard
@@ -9,19 +9,16 @@ class QuestionState(State):
         super().__init__(outcomes=["success", "failure"])
 
         self.node = node
+        self.engine = pyttsx3.init()
 
     def execute(self, blackboard: Blackboard):
 
         self.node.get_logger().info("Executing Question State")
 
         try:
-            # 音声出力
-            subprocess.run(
-                ["spd-say", "鍵を持ってますか"],
-                check=True
-            )
+            self.engine.say("鍵を持っていますか")
+            self.engine.runAndWait()
 
-            # 音声認識ステートへ
             return "success"
 
         except Exception as e:
