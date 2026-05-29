@@ -14,6 +14,7 @@ from yasmin_viewer import YasminViewerPub
 from .states import wait4start
 from .states import question
 from .states import voice_recognirion
+from .states import of_recog
 
 
 class StateMachineTestNode(Node):
@@ -46,10 +47,10 @@ class StateMachineTestNode(Node):
         )
 
         # ----------------------------------------------
-        # 音声認識
+        # 物体認識
         sm.add_state(
             name="of-recog",
-            state=voice_recognirion.VoRecofg(node=self),
+            state=of_recog.ObRecogState(node=self),
             transitions={
                 "success": "EXIT",
                 "failure": "EXIT",
