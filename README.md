@@ -156,6 +156,7 @@ cd ~/ros2_lecture_ws/
 . 0_env.sh
 . /entrypoint.sh
 colcon build --packages-select competition_pkg
+source install/setup.bash
 ros2 run competition_pkg sm_main
 ```
 
