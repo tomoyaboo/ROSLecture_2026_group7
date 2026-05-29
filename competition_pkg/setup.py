@@ -13,7 +13,13 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.pashjoin("share", package_name, "launch"), glob("./launch/*.launch.py")),
+        (os.path.join("share", package_name, "launch"), glob("./launch/*.launch.py")),
+        # yoloフォルダ追加
+        (os.path.join('share', package_name, 'yolo'),
+            glob('yolo/*.pt')),
+        # imageフォルダ追加
+        (os.path.join('share', package_name, 'image'),
+            glob('image/*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,6 +32,9 @@ setup(
         'console_scripts': [
             "node1 = competition_pkg.node1:main",
             "node2 = competition_pkg.node2:main",
+            'key_detector = competition_pkg.key_detector_node:main',
+            'image_publisher = competition_pkg.image_publisher_node:main',
+            'result_checker = competition_pkg.result_checker_node:main',
         ],
     },
 )
