@@ -260,3 +260,12 @@ ros2 run competition_pkg my_node
 ```
 
 音声認識ノードなど，追加のライブラリが必要なノードを作る場合は，そのノードを使う人だけ必要なライブラリをインストールしてください．
+
+ros2@ros2-athome01 ~/ros2_lecture_ws $ ros2_lecture_sandbox venv:/opt/pyvenv 
+ > colcon build --packages-select competition_pkg
+[0.645s] ERROR:colcon:colcon build: Duplicate package names not supported:
+- competition_pkg:
+  - group7/ROSLecture_2026_group7/competition_pkg
+  - src/7_lectures/competition_pkg
+  - src/7_lectures/last/competition_pkg
+
