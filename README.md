@@ -70,3 +70,6 @@ ros2_lecture_sandbox venv:/opt/pyvenv
 ステートマシンノード側ではWhisperを直接使用しないため，通常は仮想環境に入らなくても実行できます．
 
 ただし，`0_env.sh` や `/entrypoint.sh` を実行し忘れると，ROS2パッケージやトピックが正しく認識されない場合があります．
+
+
+python3 -c "from faster_whisper import WhisperModel; print('start'); model=WhisperModel('tiny', device='cpu', compute_type='int8'); print('loaded')"
