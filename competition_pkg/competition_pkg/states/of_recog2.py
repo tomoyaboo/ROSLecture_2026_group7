@@ -18,7 +18,7 @@ class ObRecogState2(State):
 
         # YOLOv5モデルのロード
         weights_path = os.path.expanduser(
-            '~/ROSLecture_2026_group7/competition_pkg/yolo/yolov5s.pt'
+            '~/ROSLecture_2026_group7/competition_pkg/yolo/best.pt'
         )
         yolov5_path = os.path.expanduser(
             '~/ROSLecture_2026_group7/competition_pkg/yolov5'
@@ -33,7 +33,7 @@ class ObRecogState2(State):
         self.node.get_logger().info("YOLOv5モデルのロード完了")
 
     def execute(self, blackboard: Blackboard) -> str:
-        self.node.get_logger().info("ob-recog ステート開始")
+        self.node.get_logger().info("ob-recog2 ステート開始")
 
         # カメラ起動
         cap = cv2.VideoCapture(0)
