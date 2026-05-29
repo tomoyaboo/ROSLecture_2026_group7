@@ -72,7 +72,6 @@ ros2_lecture_sandbox venv:/opt/pyvenv
 ただし，`0_env.sh` や `/entrypoint.sh` を実行し忘れると，ROS2パッケージやトピックが正しく認識されない場合があります．
 
 
+rm -rf ~/.cache/huggingface/hub/models--Systran--faster-whisper-tiny
+
 python3 -c "from faster_whisper import WhisperModel; print('start'); model=WhisperModel('tiny', device='cpu', compute_type='int8'); print('loaded')"
-
-
-python3 -c "import urllib.request; print(urllib.request.urlopen('https://huggingface.co').status)"
