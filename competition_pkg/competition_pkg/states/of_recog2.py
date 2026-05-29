@@ -11,7 +11,7 @@ from yasmin import State
 from yasmin import Blackboard
 
 
-class ObRecogState(State):
+class ObRecogState2(State):
     def __init__(self, node):
         super().__init__(outcomes=["success", "failure"])
         self.node = node
