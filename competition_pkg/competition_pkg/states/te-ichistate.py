@@ -15,34 +15,34 @@ from navigation_sample1 import NavigationSample
 class TeiichiState(State):
     def __init__(self, node: Node):
 
-        # このステートが返せる結果
+        # 縺薙�ｮ繧ｹ繝�繝ｼ繝医′霑斐○繧狗ｵ先棡
         super().__init__(outcomes=["success", "failure"])
 
         self.node = node
 
-        # Navigationクラス生成
+        # Navigation繧ｯ繝ｩ繧ｹ逕滓��
         self.nav = NavigationSample()
 
     def execute(self, blackboard: Blackboard) -> str:
 
         self.node.get_logger().info("Executing TEIICHI state")
 
-        # 目的地設定
+        # 逶ｮ逧�蝨ｰ險ｭ螳�
 
         goal_x = 1.0
         goal_y = 0.0
         goal_yaw = 0.0
 
-        # ナビゲーション開始
+        # 繝翫ン繧ｲ繝ｼ繧ｷ繝ｧ繝ｳ髢句ｧ�
 
         accepted = self.nav.goToPose(x=goal_x, y=goal_y, yaw=goal_yaw)
 
-        # Goal拒否
+        # Goal諡貞凄
         if not accepted:
             self.node.get_logger().error("Goal rejected")
             return "failure"
 
-        # ナビゲーション完了待ち
+        # 繝翫ン繧ｲ繝ｼ繧ｷ繝ｧ繝ｳ螳御ｺ�蠕�縺｡
 
         while not self.nav.isNavComplete():
             feedback = self.nav.getFeedback()
@@ -52,7 +52,7 @@ class TeiichiState(State):
                     f"Distance remaining: {feedback.distance_remaining}"
                 )
 
-        # 結果判定
+        # 邨先棡蛻､螳�
 
         result = self.nav.getResult()
 

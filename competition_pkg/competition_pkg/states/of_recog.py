@@ -18,7 +18,7 @@ class ObRecogState(State):
 
         # YOLOv5モデルのロード
         weights_path = os.path.expanduser(
-            '~/ros2_lecture_ws/src/7_lectures/competition_pkg/yolo/yolov5s.pt'
+            '~/ROSLecture_2026_group7/competition_pkg/yolo/yolov5s.pt'
         )
         self.node.get_logger().info(f"YOLOv5モデルをロード中: {weights_path}")
         self.model = torch.hub.load(
