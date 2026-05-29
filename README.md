@@ -73,3 +73,6 @@ ros2_lecture_sandbox venv:/opt/pyvenv
 
 
 python3 -c "from faster_whisper import WhisperModel; print('start'); model=WhisperModel('tiny', device='cpu', compute_type='int8'); print('loaded')"
+
+
+python3 -c "import urllib.request; print(urllib.request.urlopen('https://huggingface.co').status)"
