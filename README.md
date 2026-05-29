@@ -81,4 +81,8 @@ wget https://huggingface.co/Systran/faster-whisper-tiny/resolve/main/model.bin
 wget https://huggingface.co/Systran/faster-whisper-tiny/resolve/main/tokenizer.json
 wget https://huggingface.co/Systran/faster-whisper-tiny/resolve/main/vocabulary.txt
 
+ls -lh /home/ros2/whisper_models/faster-whisper-tiny
+
+python3 -c "from faster_whisper import WhisperModel; print('start'); model=WhisperModel('/home/ros2/whisper_models/faster-whisper-tiny', device='cpu', compute_type='int8'); print('loaded')"
+
 
