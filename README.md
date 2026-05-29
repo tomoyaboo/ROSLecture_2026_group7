@@ -71,7 +71,11 @@ ros2_lecture_sandbox venv:/opt/pyvenv
 
 ただし，`0_env.sh` や `/entrypoint.sh` を実行し忘れると，ROS2パッケージやトピックが正しく認識されない場合があります．
 
+ros2@ros2-athome01 ~/ros2_lecture_ws $ ros2_lecture_sandbox venv:/opt/pyvenv 
+ > python3 -c "from huggingface_hub import snapshot_download; print('start'); snapshot_download(repo_id='Systran/faster-whisper-tiny', local_dir='/home/ros2/whisper_models/faster-whisper-tiny', max_workers=1); print('done')"
+start
+Downloading (incomplete total...): 100%|███| 1.48k/1.48k [00:00<00:00, 2.68kB/sWarning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Downloading (incomplete total...):   0%| | 5.72k/75.5M [00:19<4:14:08, 4.95kB/s]
+Fetching 6 files:  50%|█████████████▌             | 3/6 [00:01<00:01,  2.48it/s]
 
-rm -rf /home/ros2/whisper_models/faster-whisper-tiny
 
-python3 -c "from huggingface_hub import snapshot_download; print('start'); snapshot_download(repo_id='Systran/faster-whisper-tiny', local_dir='/home/ros2/whisper_models/faster-whisper-tiny', max_workers=1); print('done')"
