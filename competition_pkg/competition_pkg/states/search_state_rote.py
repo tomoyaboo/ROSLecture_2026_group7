@@ -5,9 +5,15 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 
-from geometry_msgs.msg import PoseStamped
+
 from nav2_msgs.action import FollowWaypoints
 from action_msgs.msg import GoalStatus
+
+from geometry_msgs.msg import PoseStamped, Twist
+from rclpy.duration import Duration
+
+import threading
+import time
 
 import tf_transformations
 
@@ -29,9 +35,19 @@ class SearchState(State):
             FollowWaypoints,
             "follow_waypoints"
         )
+        self.cmd_vel_pub = self.node.create_publisher(
+            Twist,
+            "/cmd_vel",
+            10
+        )
+        self.rotation_time_sec = 4.0
+        self._rotate_thread = None
+        self._rotate_stop_event = threading.Event()
 
     def execute(self, blackboard: Blackboard) -> str:
         self.node.get_logger().info("Executing state SEARCH")
+        self._stop_rotation()
+        self._stop_robot()
 
         # 初回実行時に探索ポイントを生成してBlackboardに保存
         if not hasattr(blackboard, "search_initialized"):
@@ -54,7 +70,12 @@ class SearchState(State):
             )
         # すべての探索ポイントを回り終えたら終了
         if blackboard.search_index >= len(blackboard.search_waypoints):
-            self.node.get_logger().info("All search points finished")
+            self._stop_rotation()
+            self._stop_robot()
+
+            self.node.get_logger().info(
+                "All search points finished"
+            )
             return "finished"
 
         # 現在の探索ポイントに移動
@@ -71,6 +92,9 @@ class SearchState(State):
 
         blackboard.current_search_point = waypoint
         blackboard.search_index += 1
+
+        # 物体認識前にその場回転
+        self._start_rotation_for_recognition()
 
         return "moved"
     
@@ -130,3 +154,62 @@ class SearchState(State):
         pose.pose.orientation.w = quat[0]
 
         return pose
+    
+    def _start_rotation_for_recognition(self):
+
+        if self._rotate_thread is not None:
+            return
+
+        self.node.get_logger().info(
+            "Start rotating during object recognition"
+        )
+
+        self._rotate_stop_event.clear()
+
+        self._rotate_thread = threading.Thread(
+            target=self._rotation_loop,
+            daemon=True
+        )
+        self._rotate_thread.start()
+
+    def _rotation_loop(self):
+        twist = Twist()
+        twist.linear.x = 0.0
+        twist.angular.z = 0.4
+
+        start_time = time.time()
+
+
+        while not self._rotate_stop_event.is_set():
+
+            # 4秒経過で自動停止
+            if time.time() - start_time >= self.rotation_time_sec:
+                self.node.get_logger().info(
+                    "Rotation timeout (4 sec)"
+                )
+                break
+
+            self.cmd_vel_pub.publish(twist)
+            time.sleep(0.1)
+
+        # 回転終了時は必ず停止
+        stop = Twist()
+        self.cmd_vel_pub.publish(stop)
+
+    def _stop_rotation(self):
+        if self._rotate_thread is not None:
+            self._rotate_stop_event.set()
+            self._rotate_thread.join(timeout=1.0)
+            self._rotate_thread = None
+
+        self._stop_robot()
+
+
+    def _stop_robot(self):
+        twist = Twist()
+        twist.linear.x = 0.0
+        twist.angular.z = 0.0
+
+        for _ in range(5):
+            self.cmd_vel_pub.publish(twist)
+            time.sleep(0.1)
