@@ -18,8 +18,8 @@ class AutoPointSelector:
         self,
         map_yaml_path: str,
         num_points: int = 3,
-        safety_distance_m: float = 0.35,
-        candidate_step_px: int = 10,
+        safety_distance_m: float = 0.3,
+        candidate_step_px: int = 5,
         min_point_distance_m: float = 0.8,
     ):
         self.map_yaml_path = Path(map_yaml_path)
