@@ -17,16 +17,18 @@ class AutoPointSelector:
     def __init__(
         self,
         map_yaml_path: str,
-        num_points: int = 3,
-        safety_distance_m: float = 0.3,
-        candidate_step_px: int = 5,
-        min_point_distance_m: float = 0.8,
+        num_points: int = 3, # 生成するポイントの数
+        safety_distance_m: float = 0.3, # 障害物からの安全距離（m）
+        candidate_step_px: int = 5, # 候補点を生成する際のピクセル間隔
+        min_point_distance_m: float = 0.9, # 生成するポイント同士の最小距離（m）
+        reselect_exclude_distance_m: float = 0.8, # 再選定時に除外する距離（m）
     ):
         self.map_yaml_path = Path(map_yaml_path)
         self.num_points = num_points
         self.safety_distance_m = safety_distance_m
         self.candidate_step_px = candidate_step_px
         self.min_point_distance_m = min_point_distance_m
+        self.reselect_exclude_distance_m = reselect_exclude_distance_m
 
     def load_map(self):
         with open(self.map_yaml_path, "r") as f:
@@ -41,18 +43,15 @@ class AutoPointSelector:
 
         return grid, resolution, origin
 
-    def select_points(self):
+    def select_points(self, exclude_points=None):
         grid, resolution, origin = self.load_map()
 
-        # map_server系のpgmでは白に近いほど自由空間、黒に近いほど障害物
         free = grid > 250
 
         safety_px = max(1, int(self.safety_distance_m / resolution))
 
         if distance_transform_edt is None:
-            raise RuntimeError(
-                "scipyが必要です。sudo apt install python3-scipy または pip install scipy を実行してください。"
-            )
+            raise RuntimeError("scipyが必要です。")
 
         dist = distance_transform_edt(free)
         safe_area = dist >= safety_px
@@ -65,8 +64,17 @@ class AutoPointSelector:
                 if safe_area[y, x]:
                     candidates.append((x, y))
 
+        if exclude_points:
+            candidates = self._remove_near_visited_points(
+                candidates,
+                exclude_points,
+                resolution,
+                origin,
+                h,
+            )
+
         if len(candidates) == 0:
-            raise RuntimeError("安全距離を満たす候補点がありません。safety_distance_mを小さくしてください。")
+            raise RuntimeError("再選定可能な候補点がありません。除外距離を小さくしてください。")
 
         selected = self._farthest_point_sampling(candidates, resolution)
 
@@ -77,7 +85,6 @@ class AutoPointSelector:
             waypoints.append((x_ros, y_ros, yaw))
 
         return waypoints
-
     def _farthest_point_sampling(self, candidates, resolution):
         selected = []
 
@@ -112,8 +119,41 @@ class AutoPointSelector:
 
     def _dist_px(self, p1, p2):
         return math.hypot(p1[0] - p2[0], p1[1] - p2[1])
+    def _remove_near_visited_points(
+        self,
+        candidates,
+        exclude_points,
+        resolution,
+        origin,
+        height,
+    ):
+        filtered = []
+
+        for c in candidates:
+            c_ros = self.pixel_to_ros(
+                c[0],
+                c[1],
+                height,
+                resolution,
+                origin,
+            )
+
+            too_close = False
+
+            for ex in exclude_points:
+                dist = math.hypot(c_ros[0] - ex[0], c_ros[1] - ex[1])
+
+                if dist < self.reselect_exclude_distance_m:
+                    too_close = True
+                    break
+
+            if not too_close:
+                filtered.append(c)
+
+        return filtered
 
     def pixel_to_ros(self, x_px, y_px, height, resolution, origin):
         x_ros = origin[0] + x_px * resolution
         y_ros = origin[1] + (height - y_px) * resolution
         return x_ros, y_ros
+    

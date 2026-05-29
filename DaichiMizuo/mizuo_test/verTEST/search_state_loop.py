@@ -19,7 +19,7 @@ from .point_selector import AutoPointSelector
 
 class SearchState(State):
     def __init__(self, node: Node, map_yaml_path: str):
-        super().__init__(outcomes=["moved", "finished", "loop"])
+        super().__init__(outcomes=["moved", "loop"])
 
         self.node = node
         self.map_yaml_path = map_yaml_path
@@ -32,6 +32,10 @@ class SearchState(State):
 
     def execute(self, blackboard: Blackboard) -> str:
         self.node.get_logger().info("Executing state SEARCH")
+
+        # Blackboardに探索済みポイントを設定
+        if not hasattr(blackboard, "visited_waypoints"):
+            blackboard.visited_waypoints = []
 
         # 初回実行時に探索ポイントを生成してBlackboardに保存
         if not hasattr(blackboard, "search_initialized"):
@@ -52,11 +56,23 @@ class SearchState(State):
             self.node.get_logger().info(
                 f"Generated waypoints: {blackboard.search_waypoints}"
             )
-        # すべての探索ポイントを回り終えたら終了
+        # すべての探索ポイントを回り終わったら、再度ポイントを生成するためにSEARCHステートをループさせる
         if blackboard.search_index >= len(blackboard.search_waypoints):
-            self.node.get_logger().info("All search points finished")
-            return "finished"
+            self.node.get_logger().info(
+                "All search points finished. Re-select new points."
+            )
 
+            blackboard.visited_waypoints.extend(blackboard.search_waypoints)
+
+            if hasattr(blackboard, "search_initialized"):
+                del blackboard.search_initialized
+
+            if hasattr(blackboard, "search_waypoints"):
+                del blackboard.search_waypoints
+
+            blackboard.search_index = 0
+
+            return "loop"
         # 現在の探索ポイントに移動
         waypoint = blackboard.search_waypoints[blackboard.search_index]
         self.node.get_logger().info(
@@ -73,7 +89,7 @@ class SearchState(State):
         blackboard.search_index += 1
 
         return "moved"
-    
+
     # 指定した1点に移動する。成功したらTrue、失敗したらFalseを返す。
     def _move_to_one_waypoint(self, waypoint) -> bool:
         while not self.follow_waypoints_client.wait_for_server(timeout_sec=1.0):
