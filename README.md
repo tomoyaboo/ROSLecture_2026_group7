@@ -269,3 +269,9 @@ ros2@ros2-athome01 ~/ros2_lecture_ws $ ros2_lecture_sandbox venv:/opt/pyvenv
   - src/7_lectures/competition_pkg
   - src/7_lectures/last/competition_pkg
 
+ros2@ros2-athome01 ~/ros2_lecture_ws $ ros2_lecture_sandbox venv:/opt/pyvenv 
+ > ros2 run competition_pkg voice_recognition_node
+1776171758.106630 [30] voice_reco: selected interface "lo" is not multicast-capable: disabling multicast
+[INFO] [1776171758.138865858] [speech_recognition_node]: Whisper音声認識ノードを開始しました
+[INFO] [1776171758.139533074] [speech_recognition_node]: Whisperモデルを読み込み中...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
