@@ -20,11 +20,15 @@ class ObRecogState(State):
         weights_path = os.path.expanduser(
             '~/ROSLecture_2026_group7/competition_pkg/yolo/yolov5s.pt'
         )
-        self.node.get_logger().info(f"YOLOv5モデルをロード中: {weights_path}")
-        self.model = torch.hub.load(
-            'ultralytics/yolov5', 'custom', path=weights_path
+        yolov5_path = os.path.expanduser(
+            '~/ROSLecture_2026_group7/competition_pkg/yolov5'
         )
-        self.model.conf = 0.8   # 信頼度閾値
+        self.model = torch.hub.load(
+            yolov5_path, 'custom',
+            path=weights_path,
+            source='local'
+        )
+        self.model.conf = 0.7   # 信頼度閾値
         self.model.imgsz = 640
         self.node.get_logger().info("YOLOv5モデルのロード完了")
 
