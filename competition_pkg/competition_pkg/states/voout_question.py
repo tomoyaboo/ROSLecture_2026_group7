@@ -1,5 +1,5 @@
+import os
 import subprocess
-from gtts import gTTS
 
 from yasmin import State
 from yasmin import Blackboard
@@ -11,15 +11,13 @@ class QuestionState(State):
         self.node = node
 
     def execute(self, blackboard: Blackboard):
-
-        self.node.get_logger().info("Executing Question State")
-
         try:
-            tts = gTTS("鍵を持っていますか", lang="ja")
-            tts.save("/tmp/question.mp3")
+            voice_path = os.path.expanduser(
+                "~/ROSLecture_2026_group7/competition_pkg/competition_pkg/voice/voout_question.mp3"
+            )
 
             subprocess.run(
-                ["ffplay", "-nodisp", "-autoexit", "/tmp/question.mp3"],
+                ["ffplay", "-nodisp", "-autoexit", voice_path],
                 check=True,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL
@@ -28,7 +26,5 @@ class QuestionState(State):
             return "success"
 
         except Exception as e:
-            self.node.get_logger().error(
-                f"Voice output failed: {e}"
-            )
+            self.node.get_logger().error(f"Voice playback failed: {e}")
             return "failure"

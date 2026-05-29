@@ -13,7 +13,7 @@ class VoOutYesState(State):
     def execute(self, blackboard: Blackboard):
         try:
             voice_path = os.path.expanduser(
-                "~/ROSLecture_2026_group7/competition_pkg/competition_pkg/voice/yes.mp3"
+                "~/ROSLecture_2026_group7/competition_pkg/competition_pkg/voice/voout_yes.mp3"
             )
 
             subprocess.run(
