@@ -80,3 +80,5 @@ python3 -c "from faster_whisper import WhisperModel; print('start'); model=Whisp
 python3 -c "from faster_whisper import WhisperModel; print('start'); model=WhisperModel('tiny', device='cpu', compute_type='int8', download_root='/home/ros2/whisper_models'); print('loaded')"
 
 pip install -U huggingface_hub
+
+python3 -c "from huggingface_hub import snapshot_download; print('start'); snapshot_download(repo_id='Systran/faster-whisper-tiny', local_dir='/home/ros2/whisper_models/faster-whisper-tiny'); print('done')"
