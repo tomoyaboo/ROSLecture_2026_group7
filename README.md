@@ -75,3 +75,6 @@ ros2_lecture_sandbox venv:/opt/pyvenv
 rm -rf ~/.cache/huggingface/hub/models--Systran--faster-whisper-tiny
 
 python3 -c "from faster_whisper import WhisperModel; print('start'); model=WhisperModel('tiny', device='cpu', compute_type='int8'); print('loaded')"
+
+
+python3 -c "from faster_whisper import WhisperModel; print('start'); model=WhisperModel('tiny', device='cpu', compute_type='int8', download_root='/home/ros2/whisper_models'); print('loaded')"
