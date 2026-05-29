@@ -38,21 +38,21 @@ class SearchNode(Node):
     def __init__(self):
         super().__init__("search")
 
-        self.declare_parameter("map_yaml", "map.yaml")
+        self.declare_parameter("map_yaml", "map.yaml") #絶対パス指定に変更
         map_yaml = self.get_parameter("map_yaml").value
 
         if not os.path.isabs(map_yaml):
             pkg_share = get_package_share_directory("ROSLecture_2026_group7")
             map_yaml = os.path.join(pkg_share, "map", map_yaml)
 
-        sm = StateMachine(outcomes=["FOUND", "FINISHED", "FAILED"])
+        sm = StateMachine(outcomes=["FOUND", "FAILED"])
 
         sm.add_state(
             name="SEARCH",
             state=SearchState(self, map_yaml),
             transitions={
                 "detect": "OF_RECOG",
-                "finished": "FINISHED",
+                "loop": "SEARCH",
                 "failed": "FAILED",
             },
         )
