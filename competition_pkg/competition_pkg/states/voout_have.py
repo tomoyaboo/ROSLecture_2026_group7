@@ -9,21 +9,16 @@ class VoOutHaveState(State):
         super().__init__(outcomes=["success", "failure"])
 
         self.node = node
-        self.engine = pyttsx3.init()
+
 
     def execute(self, blackboard: Blackboard):
 
         self.node.get_logger().info("Executing VoOut-Have State")
 
         try:
-            self.engine.say("鍵を持っているんですね")
-            self.engine.runAndWait()
-
+            self.node.get_logger().info("鍵を持っているんですね")
             return "success"
 
         except Exception as e:
-            self.node.get_logger().error(
-                f"Voice output failed: {e}"
-            )
-
+            self.node.get_logger().info("failure")
             return "failure"

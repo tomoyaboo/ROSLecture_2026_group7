@@ -4,22 +4,19 @@ from glob import glob
 
 package_name = 'competition_pkg'
 submodules = [f"{package_name}/states"]
+yolo = [f"yolo"]
+yolov5 = [f"yolov5"]
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test',*submodules]),
+    packages=find_packages(exclude=['test',*submodules,*yolo, *yolov5]),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join("share", package_name, "launch"), glob("./launch/*.launch.py")),
-        # yoloフォルダ追加
-        (os.path.join('share', package_name, 'yolo'),
-            glob('yolo/*.pt')),
-        # imageフォルダ追加
-        (os.path.join('share', package_name, 'image'),
-            glob('image/*')),
+        (os.path.join("share", package_name, "yolov5"), glob("competition_pkg/yolov5/*")),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -30,11 +27,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "node1 = competition_pkg.node1:main",
-            "node2 = competition_pkg.node2:main",
-            'key_detector = competition_pkg.key_detector_node:main',
-            'image_publisher = competition_pkg.image_publisher_node:main',
-            'result_checker = competition_pkg.result_checker_node:main',
+            "sm_main = competition_pkg.sm_main:main",
+            'voice_recognition_node = competition_pkg.node.voice_recognition_node_whisper:main',
+            " sample = competition_pkg.navigation_sample1:main",
+
         ],
     },
 )

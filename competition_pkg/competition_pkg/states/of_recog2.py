@@ -18,10 +18,10 @@ class ObRecogState2(State):
 
         # YOLOv5モデルのロード
         weights_path = os.path.expanduser(
-            '~/ROSLecture_2026_group7/competition_pkg/yolo/best.pt'
+            '/ROSLecture_2026_group7/competition_pkg/yolo/best.pt'
         )
         yolov5_path = os.path.expanduser(
-            '~/ROSLecture_2026_group7/competition_pkg/yolov5'
+            '/ROSLecture_2026_group7/competition_pkg/yolov5'
         )
         self.model = torch.hub.load(
             yolov5_path, 'custom',

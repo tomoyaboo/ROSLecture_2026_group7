@@ -9,21 +9,19 @@ class QuestionState(State):
         super().__init__(outcomes=["success", "failure"])
 
         self.node = node
-        self.engine = pyttsx3.init()
+
 
     def execute(self, blackboard: Blackboard):
 
         self.node.get_logger().info("Executing Question State")
 
         try:
-            self.engine.say("鍵を持っていますか")
-            self.engine.runAndWait()
+         
+            self.node.get_logger().info("鍵を持っていますか")
 
             return "success"
 
         except Exception as e:
-            self.node.get_logger().error(
-                f"Voice output failed: {e}"
-            )
+            sself.node.get_logger().info("failure")
 
             return "failure"

@@ -13,12 +13,15 @@ from yasmin_viewer import YasminViewerPub
 
 # 各ステートをimport
 from .states import wait4start
-from .states import ???
-from .states import ???
-from .states import ???
-from .states import ???
-from .states import question
-from .states import VoiceRecognition
+from .states import te_ichistate
+from .states import of_recog
+from .states import of_recog2
+from .states import search_state
+from .states import voout_have
+from .states import voout_no
+from .states import voout_question
+from .states import voout_yes
+from .states import voice_recognirion
 
 
 class StateMachineNode(Node):
@@ -27,6 +30,7 @@ class StateMachineNode(Node):
 
         self.get_logger().info("<< PLEASE ENTER TO START >>")
         self.get_logger().info("Task Start!!")
+        map_yaml = "/HOME/ros2_lecture_ws/map.yaml"
 
         # StateMachineを作成
         sm = StateMachine(outcomes=["EXIT"])
@@ -44,9 +48,10 @@ class StateMachineNode(Node):
         # 定位置移動
         sm.add_state(
             name="te-ichi",
-            state=???,
+            state=te_ichistate.TeiichiState(node=self),
             transitions={
-                ??? : "of-recog",
+                "success" : "of-recog",
+                "failure" : "te-ichi",
             },
         )
 
@@ -54,10 +59,10 @@ class StateMachineNode(Node):
         # 物体認識
         sm.add_state(
             name="of-recog",
-            state=???,
+            state=of_recog.ObRecogState(node=self),
             transitions={
-                ??? : "VoOut-Yes",
-                ??? : "Question",
+                "success" : "VoOut-Yes",
+                "failure": "Question",
             }
         )
 
@@ -65,9 +70,10 @@ class StateMachineNode(Node):
         # 「カギあります」音声１
         sm.add_state(
             name="VoOut-Yes",
-            state=???,
+            state=voout_yes.VoOutYesState,
             transitions={
-                ??? : "EXIT",
+                "success" : "EXIT",
+                "failure" : "EXIT"
             },
         )
 
@@ -75,7 +81,7 @@ class StateMachineNode(Node):
 
         sm.add_state(
             name="Question",
-            state=question.QuestionState(node=self),
+            state=voout_question.QuestionState(node=self),
             transitions={
                 "success": "VoiceRecognition",
             },
@@ -86,7 +92,7 @@ class StateMachineNode(Node):
         # 音声認識
         sm.add_state(
             name="VoiceRecognition",
-            state=???,
+            state=voice_recognirion.VoRecofg,
             transitions={
                 "HAVE": "VoOut-have",
                 "LOST": "search",
@@ -101,21 +107,35 @@ class StateMachineNode(Node):
         # 探し回る
         sm.add_state(
             name="search",
-            state=???,
+            state=search_state.SearchState(self, map_yaml),
             transitions={
-                ???: "VoOut-Yes",
-                ???: "VoOut-No",
+                "moved": "of-recog2",
+                "loop": "search",
+                "finished": "VoOut-No"
+
             },
         )
         # ----------------------------------------------
+
+        # ----------------------------------------------
+        # 物体認識2
+        sm.add_state(
+            name="of-recog2",
+            state=of_recog2.OfRecogState2(node=self),
+            transitions={
+                "success" : "VoOut-Yes",
+                "failure" : "search",
+            }
+        )
 
 
         # 「カギないです」音声２
         sm.add_state(
             name="VoOut-No",
-            state=???,
+            state=voout_no.VoOutNoState,
             transitions={
-                ???: "Exit",
+                "success" : "Exit",
+                "failure" : "Exit"
             },
         )
 
@@ -123,9 +143,10 @@ class StateMachineNode(Node):
         # 「鍵持っている」音声３
         sm.add_state(
             name="VoOut-Have",
-            state=???,
+            state=voout_have.VoOutHaveState,
             transitions={
-                ??? : "EXIT",
+                "success" : "EXIT",
+                "failure" : "EXIT"
             },
         )
 
